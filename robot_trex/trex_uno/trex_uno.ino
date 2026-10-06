@@ -34,6 +34,12 @@
 #define POS_FECHADA  70
 #define MS_POR_GRAU  4    // velocidade dos comandos ABRIR/FECHAR
 
+// Desliga o sinal do servo quando a boca está parada, para ele não ficar
+// fazendo força (e puxando corrente) o tempo todo. Se a boca cair sozinha
+// com o servo solto, mude para 0.
+#define RELAXAR_SERVO     1
+#define T_RELAXAR_MS      600   // tempo parado até soltar o servo
+
 // ---------------- Áudio ----------------
 #define VOLUME             30     // 0..30 (30 = 100%)
 #define PASTA_SOM          1      // pasta "01" no cartão SD
@@ -93,12 +99,20 @@ void escreverServo(int pos) {
     servoBoca.write(pos);
     posAtual = pos;
   }
+  if (!servoBoca.attached()) servoBoca.attach(PIN_SERVO);
 }
 
 // Movimento suave e não bloqueante até posAlvo (usado por ABRIR/FECHAR)
 void atualizarMovimento() {
-  if (posAtual == posAlvo) return;
   unsigned long agora = millis();
+  if (posAtual == posAlvo) {
+#if RELAXAR_SERVO
+    if (servoBoca.attached() && agora - tUltimoPasso >= T_RELAXAR_MS) {
+      servoBoca.detach();
+    }
+#endif
+    return;
+  }
   if (agora - tUltimoPasso < MS_POR_GRAU) return;
   tUltimoPasso = agora;
   escreverServo(posAtual + (posAlvo > posAtual ? 1 : -1));
@@ -174,6 +188,7 @@ void atualizarAnimacao() {
       estado = PARADO;
       ledDesligar();
       posAlvo = POS_ABERTA;   // termina com a boca aberta
+      tUltimoPasso = agora;
       return;
     }
 
