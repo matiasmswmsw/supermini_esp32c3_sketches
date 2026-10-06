@@ -35,7 +35,7 @@
 #define MS_POR_GRAU  4    // velocidade dos comandos ABRIR/FECHAR
 
 // ---------------- Áudio ----------------
-#define VOLUME             12     // 0..30
+#define VOLUME             30     // 0..30 (30 = 100%)
 #define PASTA_SOM          1      // pasta "01" no cartão SD
 #define ARQUIVO_SOM        1      // arquivo "001.mp3"
 #define DURACAO_SOM_MS     5000   // duração do rugido
